@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teclado Numérico Musical</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 10px;
+        }
+        button {
+            width: 100px;
+            height: 100px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.active {
+            background-color: #FF5722;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teclado Numérico Musical</h1>
+    <div class="keyboard">
+        <button data-key="1" data-frequency="261.63">1</button> <!-- C4 -->
+        <button data-key="2" data-frequency="293.66">2</button> <!-- D4 -->
+        <button data-key="3" data-frequency="329.63">3</button> <!-- E4 -->
+        <button data-key="4" data-frequency="349.23">4</button> <!-- F4 -->
+        <button data-key="5" data-frequency="392.00">5</button> <!-- G4 -->
+        <button data-key="6" data-frequency="440.00">6</button> <!-- A4 -->
+        <button data-key="7" data-frequency="493.88">7</button> <!-- B4 -->
+        <button data-key="8" data-frequency="523.25">8</button> <!-- C5 -->
+        <button data-key="9" data-frequency="587.33">9</button> <!-- D5 -->
+        <button data-key="0" data-frequency="659.25">0</button> <!-- E5 -->
+    </div>
+    <script>
+        // Crear un único contexto de audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Función para reproducir una nota
+        function playNote(frequency) {
+            const osc = audioContext.createOscillator(); // Crear un oscilador
+            const gainNode = audioContext.createGain(); // Controlar el volumen
+
+            osc.type = 'sine'; // Tipo de onda
+            osc.frequency.value = frequency; // Frecuencia en Hz
+
+            // Conectar el oscilador al gainNode y este al destino
+            osc.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Configurar envolvente
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Inicio bajo volumen
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 1); // Reducir lentamente
+
+            osc.start(); // Iniciar el oscilador
+            osc.stop(audioContext.currentTime + 1); // Detener después de 1 segundo
+        }
+
+        // Función para gestionar el evento de pulsación de teclas
+        function handleKeyPress(event) {
+            const key = event.key; // Obtener la tecla pulsada
+            const button = document.querySelector(`button[data-key="${key}"]`);
+            if (button) {
+                const frequency = parseFloat(button.dataset.frequency);
+                playNote(frequency);
+
+                // Agregar efecto visual al botón correspondiente
+                button.classList.add("active");
+                setTimeout(() => button.classList.remove("active"), 200);
+            }
+        }
+
+        // Agregar eventos a los botones para clics
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                const frequency = parseFloat(button.dataset.frequency);
+                playNote(frequency);
+            });
+        });
+
+        // Agregar evento de teclado
+        document.addEventListener('keydown', handleKeyPress);
+    </script>
+</body>
+</html>
